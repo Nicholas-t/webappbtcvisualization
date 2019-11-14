@@ -1,24 +1,26 @@
 <!DOCTYPE html>
 <html>
-    <style>
-        .node{
-            fill:rgb(233, 27, 27);
-            stroke: rgb(52, 23, 121);
-            stroke-width: 2px;
-        }
-
-        .link{
-            stroke:black;
-            stroke-width: 2px;
-        }
-    </style>
     <body>
-        <form class = "date-form">
-            <label>height</label>
-            <input id = "height" type="text" placeholder="Number" />
+        <form class = "height-form">
+            <label>height start</label>
+            <input id = "heightStart" type="text" placeholder="Number" />
+            <label>height end</label>
+            <input id = "heightEnd" type="text" placeholder="Number" />
             <button type="submit" style="width:40px;height:20px">plot</button>
-          </form>
+        </form>
+        <!--<form class="txhash-form">
+            <br>
+            <label>txHash</label>
+            <input id = "txhash" type="text" placeholder="Number" />
+            <label>depth</label>
+            <input id = "depth" type="text" placeholder="Number" />
+            <button type="submit" style="width:40px;height:20px">plot</button>
+          </form>-->
+          <div id="3d-graph"> 
     </body>
+    <script src="//unpkg.com/three"></script>
+    <script src="//unpkg.com/three-spritetext"></script>
+    <script src="//unpkg.com/3d-force-graph"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://d3js.org/d3.v3.min.js"></script>
     <script src="d3.js"></script>

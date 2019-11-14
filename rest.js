@@ -22,11 +22,36 @@ app.listen(3031, () => {
 });
 
 app.get("/api/getdata", (req, res, next) => {
-    const height = req.query.height;
-    console.log(`fetching for ${height} blockheight`)
-    blockexplorer.getBlockHeight(height).then((raw) => {
-        const txs = raw.blocks[0].tx;
-        console.log(txs)
-        res.send(txs)
-    })
+    let txs = [];
+    if (req.query.height){
+        
+        const height = req.query.height;
+        console.log(`fetching for ${height} blockheight`)
+        blockexplorer.getBlockHeight(height).then((raw) => {
+            txs = raw.blocks[0].tx;
+            console.log(`Found ${txs.length} transactions`)
+            res.send(txs)
+            res.end()
+        })
+    }
+    if (req.query.txHash && req.query.depth){
+        const txHash = req.query.txHash;
+        const depth = req.query.depth;
+        var tx = [txHash];
+        var out = [];
+        for (let d= 0; d < depth;d++){ //iterate for depth
+            for (let t = 0; t<tx.length; t++){ //iterate for each transaction
+                console.log(t)
+                blockexplorer.getTx(tx[t]).then( (result) => {
+                    let outPoints = result.out
+                    for(let i = 0 ; i < outPoints.length; i++){
+                        if (outPoints[i].spent){
+                            console.log(outPoints[i])
+                        }
+                    }
+                        
+                }).catch(console.error)   
+            }  
+        }
+    }
 });
