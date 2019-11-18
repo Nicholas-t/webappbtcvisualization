@@ -34,24 +34,26 @@ app.get("/api/getdata", (req, res, next) => {
             res.end()
         })
     }
-    if (req.query.txHash && req.query.depth){
-        const txHash = req.query.txHash;
-        const depth = req.query.depth;
-        var tx = [txHash];
-        var out = [];
-        for (let d= 0; d < depth;d++){ //iterate for depth
-            for (let t = 0; t<tx.length; t++){ //iterate for each transaction
-                console.log(t)
-                blockexplorer.getTx(tx[t]).then( (result) => {
-                    let outPoints = result.out
-                    for(let i = 0 ; i < outPoints.length; i++){
-                        if (outPoints[i].spent){
-                            console.log(outPoints[i])
+    if (req.query.address && req.query.maxTx && req.query.maxOutput){
+        const address = req.query.address;
+        const maxTx = req.query.maxTx;
+        const maxOutput = req.query.maxOutput;
+        let txs = [];
+        blockexplorer.getAddress(address).then( (result) => {
+            if (result.txs.length <= maxTx){
+                for (let i = 0; i< result.txs.length; i++){
+                    if (result.txs[i].inputs.length<= maxOutput &&
+                        result.txs[i].out.length<= maxOutput){
+                            txs.push(result.txs[i]);
                         }
-                    }
-                        
-                }).catch(console.error)   
-            }  
-        }
+                }
+            }
+            console.log('sending ',txs)
+            res.send(txs)
+        }).catch((e) => {
+            console.error(e);
+            res.send(txs);
+        })
+            
     }
 });

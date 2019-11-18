@@ -3,26 +3,34 @@
     <body>
         <form class = "height-form">
             <label>height start</label>
-            <input id = "heightStart" type="text" placeholder="Number" />
+            <input id = "heightStart" type="Number" placeholder="Number" />
             <label>height end</label>
-            <input id = "heightEnd" type="text" placeholder="Number" />
+            <input id = "heightEnd" type="Number" placeholder="Number" />
             <button type="submit" style="width:40px;height:20px">plot</button>
         </form>
-        <!--<form class="txhash-form">
-            <br>
-            <label>txHash</label>
-            <input id = "txhash" type="text" placeholder="Number" />
+
+        <!--<form class = "address-form">
+            <label>address start</label>
+            <input id = "addressStart" type="text" placeholder="address" value = "1KTMbDyDANDT9FDzsxuDn4tMo6omJf6Vt7"/>
             <label>depth</label>
-            <input id = "depth" type="text" placeholder="Number" />
+            <input id = "depth" type="Number" placeholder="Number" value="1"/>
+            <label>max n. Tx / address</label>
+            <input id = "maxTx" type="Number" placeholder="Number" value="100"/>
+            <label>max n. Output / Tx</label>
+            <input id = "maxOutput" type="Number" placeholder="Number" value="100"/>
             <button type="submit" style="width:40px;height:20px">plot</button>
-          </form>-->
-          <div id="3d-graph"> 
+        </form>-->
+        <div id="3d-graph"> 
     </body>
     <script src="//unpkg.com/three"></script>
     <script src="//unpkg.com/three-spritetext"></script>
+
+    <script src="//unpkg.com/d3-dsv"></script>
+    <script src="//unpkg.com/dat.gui"></script>
+    <script src="//unpkg.com/d3-octree"></script>
+    <script src="//unpkg.com/d3-force-3d"></script>
     <script src="//unpkg.com/3d-force-graph"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <script src="https://d3js.org/d3.v3.min.js"></script>
     <script src="d3.js"></script>
     <script src="app.js"></script>
 </html>
