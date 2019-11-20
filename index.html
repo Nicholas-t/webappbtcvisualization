@@ -1,26 +1,32 @@
 <!DOCTYPE html>
 <html>
+    <link rel="stylesheet" type="text/css" href="style.css">
     <body>
-        <form class = "height-form">
+        <div class="overlay">
+            <h1>BITCOIN BLOCKCHAIN VISUALIZER</h1>
+            <h2>CSE 303</h2>
+            <p style = "color:white;font-size: large;">
+                How to run : <br>
+                -  Be sure to run the rest API by running 'node rest' in command prompt.<br>
+                -  put the height of the block you want to visualize. <br>
+                -  the "heigh end" entry is optional. Add a number if you want to visualize<br>
+                   an interval of blockheight.<br>
+                -  the plot button will open a full screen visualization of the transaction in the block.<br>
+                -  right click on the nodes or links and it will redirect you to the address details or<br>
+                   the transaction details respectively.<br>
+                -  press "BACK" on the top left or "Esc" twice if you want to exit the fullscreen.<br>
+            </p>
+            <form class = "height-form">
             <label>height start</label>
             <input id = "heightStart" type="Number" placeholder="Number" />
             <label>height end</label>
             <input id = "heightEnd" type="Number" placeholder="Number" />
-            <button type="submit" style="width:40px;height:20px">plot</button>
+            <button type="submit">plot</button>
         </form>
-
-        <!--<form class = "address-form">
-            <label>address start</label>
-            <input id = "addressStart" type="text" placeholder="address" value = "1KTMbDyDANDT9FDzsxuDn4tMo6omJf6Vt7"/>
-            <label>depth</label>
-            <input id = "depth" type="Number" placeholder="Number" value="1"/>
-            <label>max n. Tx / address</label>
-            <input id = "maxTx" type="Number" placeholder="Number" value="100"/>
-            <label>max n. Output / Tx</label>
-            <input id = "maxOutput" type="Number" placeholder="Number" value="100"/>
-            <button type="submit" style="width:40px;height:20px">plot</button>
-        </form>-->
-        <div id="3d-graph"> 
+        <div class = "graph" >
+            <button class="back" style="width:80px;height:40px">BACK</button>
+            <div id="3d-graph">
+        </div>
     </body>
     <script src="//unpkg.com/three"></script>
     <script src="//unpkg.com/three-spritetext"></script>

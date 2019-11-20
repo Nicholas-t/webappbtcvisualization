@@ -1,6 +1,34 @@
+const back = document.getElementsByClassName("back")[0];
+back.addEventListener("click", function(){
+    toggleFullscreen();
+});
+
+document.addEventListener('keydown', function (evt) {
+    if (evt.which === 27) {
+        if (!document.fullscreenElement){
+            console.log('p');
+            document.getElementsByClassName('graph')[0].style.display = "none";
+        }
+    }
+});
+
+function toggleFullscreen() {
+    let elem = document.getElementsByClassName('graph')[0];
+  
+    if (!document.fullscreenElement) {
+      elem.requestFullscreen().catch(err => {
+        alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+      });
+    } else {
+        document.getElementsByClassName('graph')[0].style.display = "none";
+        document.exitFullscreen();
+    }
+  }
 
 document.querySelector('form.height-form').addEventListener('submit', (e) => {
     e.preventDefault();
+    document.getElementsByClassName('graph')[0].style.display = "inline";
+    toggleFullscreen();
     var heightStart = document.getElementById('heightStart').value;
     var heightEnd = document.getElementById('heightEnd').value;
     getDataBlockHeight(heightStart, heightEnd).then((parsedData) => {
@@ -11,62 +39,7 @@ document.querySelector('form.height-form').addEventListener('submit', (e) => {
     })
 }, false);
 
-/*document.querySelector('form.address-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    //drawAddress()
-    var addressStart = document.getElementById('addressStart').value;
-    var depth = document.getElementById('depth').value;
-    var maxTx = document.getElementById('maxTx').value;
-    var maxOutput = document.getElementById('maxOutput').value;
-    getDataFromAddress(addressStart, depth, maxTx, maxOutput).then((parsedData) => {
-        const path = parsedData[0]
-        const size = parsedData[1]
-        drawAddress(path, size)   
-    })
-}, false);*/
 
-const getDataFromAddress = async (address, depth, maxTx, maxOutput) => {
-    let tx = [];
-    let addresses = [address];
-    let doneAddresses = [];
-    for(let j = 0;j<depth;j++){
-        let newAddresses = [];
-        for (let i = 0; i< addresses.length ; i++){
-            const address = addresses[i];
-            console.log(`fetching history for ${address}`)
-            const res = await axios.get(`http://localhost:3031/api/getdata?address=${address}&maxTx=${maxTx}&maxOutput=${maxOutput}`);//receives txs
-            if (res !== []) {
-                doneAddresses.push(address)
-                newAddresses.push(deriveAddress(res.data, doneAddresses));
-                console.log(`received ${res.data.length} txs!`)
-                tx.push(res.data);
-            }
-            await sleep(2000);
-            console.log(`on depth ${j+1}`);
-        }
-        addresses = newAddresses; // NEED TO DO ITERATION OVER DEPTH
-        //console.log(addresses);
-    }
-    return parseAddress(tx[0]);
-}
-
-const deriveAddress = (txs, doneAddresses) => {
-    console.log(txs)
-    let out = [];
-    for (let i = 0; i < txs.length ; i++){
-        for (let j  =0; j< txs[i].inputs.length ; j++){
-            if (!doneAddresses.includes(txs[i].inputs[j].prev_out.addr)){
-                out.push(txs[i].inputs[j].prev_out.addr);
-            }
-        }
-        for (let j  =0; j< txs[i].out.length ; j++){
-            if (!doneAddresses.includes(txs[i].out[j].addr)){
-                out.push(txs[i].out[j].addr);
-            }
-        }
-    }
-    return out;
-}
 
 const getDataBlockHeight = async (heightStart, heightEnd) => {
     let txs = [];
