@@ -2,7 +2,7 @@
 <html>
     <link rel="stylesheet" type="text/css" href="style.css">
     <body>
-        <div class="overlay">
+        <div class="column overlay">
             <h1>BITCOIN BLOCKCHAIN VISUALIZER</h1>
             <h2>CSE 303</h2>
             <p style = "color:white;font-size: large;">
@@ -15,27 +15,51 @@
                 -  right click on the nodes or links and it will redirect you to the address details or<br>
                    the transaction details respectively.<br>
                 -  press "BACK" on the top left or "Esc" twice if you want to exit the fullscreen.<br>
+                <form class = "column height-form">
+                    <label>height start</label>
+                    <input id = "heightStart" type="Number" placeholder="Number" />
+                    <label>height end</label>
+                    <input id = "heightEnd" type="Number" placeholder="Number" />
+                    <label>3D plot</label> 
+                    <input type="checkbox" id="3d" checked>
+                    <button type="submit">plot</button>
+                </form>
+                <table class="column Summary">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="Summary">
+                    </tbody>
+                    
+                </table>
+                
+                <div class="options">
+                    <div class = "SIZE" id="SIZE">
+                            <input type="checkbox" /> Filter your datas by size of your connected components<br />
+                    </div>
+                </div>
+                <button id="showall" onclick="checkAll(true)"> CHECK ALL </button>
+                <button id="unshowall" onclick="checkAll(false)"> UN-CHECK ALL </button>
+                <button id="refresh" onclick="refreshGraph()"> REFRESH </button>
             </p>
-            <form class = "height-form">
-            <label>height start</label>
-            <input id = "heightStart" type="Number" placeholder="Number" />
-            <label>height end</label>
-            <input id = "heightEnd" type="Number" placeholder="Number" />
-            <button type="submit">plot</button>
-        </form>
-        <div class = "graph" >
-            <button class="back" style="width:80px;height:40px">BACK</button>
-            <div id="3d-graph">
+        </div>
+        <div class = "column graph" >
+            <div id="graph">
         </div>
     </body>
-    <script src="//unpkg.com/three"></script>
-    <script src="//unpkg.com/three-spritetext"></script>
+    
+    <script src="https://unpkg.com/three"></script>
+    <script src="https://unpkg.com/three-spritetext"></script>
 
-    <script src="//unpkg.com/d3-dsv"></script>
-    <script src="//unpkg.com/dat.gui"></script>
-    <script src="//unpkg.com/d3-octree"></script>
-    <script src="//unpkg.com/d3-force-3d"></script>
-    <script src="//unpkg.com/3d-force-graph"></script>
+    <script src="https://unpkg.com/force-graph"></script>
+    <script src="https://unpkg.com/d3-dsv"></script>
+    <script src="https://unpkg.com/dat.gui"></script>
+    <script src="https://unpkg.com/d3-octree"></script>
+    <script src="https://unpkg.com/d3-force-3d"></script>
+    <script src="https://unpkg.com/3d-force-graph"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="d3.js"></script>
     <script src="app.js"></script>
