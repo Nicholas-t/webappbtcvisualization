@@ -9,7 +9,7 @@
                 How to run : <br>
                 -  Be sure to run the rest API by running 'node rest' in command prompt.<br>
                 -  put the height of the block you want to visualize. <br>
-                -  the "heigh end" entry is optional. Add a number if you want to visualize<br>
+                -  the "height end" entry is optional. Add a number if you want to visualize<br>
                    an interval of blockheight.<br>
                 -  the plot button will open a full screen visualization of the transaction in the block.<br>
                 -  right click on the nodes or links and it will redirect you to the address details or<br>
@@ -35,7 +35,8 @@
                     </tbody>
                     
                 </table>
-                
+                <div class = "column log">
+                </div>
                 <div class="options">
                     <div class = "SIZE" id="SIZE">
                             <input type="checkbox" /> Filter your datas by size of your connected components<br />
@@ -44,6 +45,8 @@
                 <button id="showall" onclick="checkAll(true)"> CHECK ALL </button>
                 <button id="unshowall" onclick="checkAll(false)"> UN-CHECK ALL </button>
                 <button id="refresh" onclick="refreshGraph()"> REFRESH </button>
+                <button onclick="listFetched()" style="color:black;background: white;">list fetched height in console</button>
+                
             </p>
         </div>
         <div class = "column graph" >

@@ -19,10 +19,14 @@ body:after{
     display: none;
 }
 
-
 h1, h2 {
     color:white;
 }
+#status {
+    color:white;
+    margin: 40px 80px 80px 65px;
+}
+
 
 .column{
     float: left;
@@ -38,9 +42,6 @@ h1, h2 {
     width:100%;
     color:white;
     border: 1px solid rgb(255, 255, 255);
-}
-.value{
-    width : 40px;
 }
 
 .Summary tbody{
@@ -124,6 +125,14 @@ h1, h2 {
     overflow-y: scroll; 
 }
 
+.log{
+    border:2px solid #ccc;
+    margin-left: 30px;
+    overflow-y: scroll; 
+    width: 200px;
+    height: 170px;
+}
+
 .refresh {
     width : 24%;
     margin : 5px 5px 5px 5px;
@@ -133,4 +142,5 @@ h1, h2 {
     display : table;
     width:100%;
 }
+
 

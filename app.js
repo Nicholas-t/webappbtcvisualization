@@ -6,12 +6,24 @@ var nodesOnView = [];
 var linksOnView = [];
 var sizeState = {};
 let cluster = [];
-var SHOWTOP = 25;
+var blocksFetched = [];
+var DATA_TX = {};
 var SUMMARY = {};
+var cnsle = document.getElementsByClassName('log')[0];
 
 window.onload = function(){
+    cnslog("Welcome to my project");
+    cnslog("Ready for query ...");
     refreshGraph();
 }
+
+function listFetched(){
+    cnslog('listing fetched transactions')
+    for (var key of Object.keys(DATA_TX)) {
+            cnslog(`block ${key} (${DATA_TX[key].length} Txs)`)
+        }
+}
+    
 
 function checkAll(fill){
     let checks = document.getElementsByClassName('SIZECHECK');
@@ -20,12 +32,26 @@ function checkAll(fill){
     }
 }
 
+function cnslog(message, color = "white"){
+    cnsle.innerHTML += ` <a style = "color:${color}"> >> ${message}</a><br>`;
+    cnsle.scrollTop = cnsle.scrollHeight - cnsle.clientHeight;
+}
+
 document.querySelector('form.height-form').addEventListener('submit', (e) => {
     e.preventDefault();
     var elem = document.getElementsByClassName('graph')[0];
-    elem.style.display = "inline";
-    var heightStart = document.getElementById('heightStart').value;
-    var heightEnd = document.getElementById('heightEnd').value;
+    var heightStart = Number(document.getElementById('heightStart').value);
+    var heightEnd = Number(document.getElementById('heightEnd').value);
+    //console.log(heightEnd, heightStart)
+    if (heightEnd){
+        if (heightEnd<heightStart){
+            cnslog("Block order needs to be ascending", "red");
+            return;
+        }
+        cnslog(`Visualizing block ${heightStart}th to ${heightEnd}hth`);
+    }else{
+        cnslog(`Visualizing block ${heightStart}th`)
+    }
     w = elem.offsetWidth;
     h = elem.offsetHeight;
     getDataBlockHeight(heightStart, heightEnd).then((parsedData) => {
@@ -33,9 +59,6 @@ document.querySelector('form.height-form').addEventListener('submit', (e) => {
         links = parsedData[1];
         nodesOnView = nodes;
         linksOnView = links;
-        //filterNTx(3, dec = false);
-        //console.log(nodesOnView);
-        //console.log(linksOnView);
         cluster = findCluster(links);
         refreshTables();
         refreshGraph();
@@ -57,19 +80,12 @@ function refreshTables(){
         }
         lengths[cluster[c].length] += 1;
     }
-    let k = 0
     for (var key of Object.keys(lengths)) {
-        if (k<SHOWTOP){
-            sizeState[key] = true;
-            htmlSize +=  `<input type="checkbox" checked="true" class = "SIZECHECK" 
-                    id = "${key}"/> ${key} Connected Components (${lengths[key]} transactions) <br />`;
-            k+=1;
-        }else{
-            sizeState[key] = false;
-            htmlSize +=  `<input type="checkbox" checked="false" class = "SIZECHECK" 
-                    id = "${key}"/> ${key} Connected Components (${lengths[key]} transactions) <br />`;
-        }
+        sizeState[key] = true;
+        htmlSize +=  `<input type="checkbox" checked="true" class = "SIZECHECK" 
+                id = "${key}"/> ${key} Connected Components (${lengths[key]} transactions) <br />`;
     }
+    console.log(sizeState)
     sizeTable.innerHTML = htmlSize;
 
 }
@@ -98,20 +114,19 @@ function refreshSummary(){
 }
 
 function refreshGraph(){
+    if (nodes.length !== 0 ){
+        cnslog("reloading Graph with datasets", "green");
+    }
     let curState = getState();
     for (var key of Object.keys(curState)) {
         if (curState[key] !== sizeState[key]){
             if (curState[key]){
-                console.log(`adding txs of ${key}`);
                 filterNTx(key, dec=false);
             }else{
-                console.log(`deleting txs of ${key}`)
                 filterNTx(key);
             }
         }
     }
-    console.log('NOV',nodesOnView, 'LOV',linksOnView)
-    document.getElementById('graph').innerHTML = "";
     if (graph){graph.pauseAnimation()}
     if (document.getElementById('3d').checked){
         graph = draw3dHeight(nodesOnView, linksOnView,w,h);
@@ -151,21 +166,18 @@ function filterNTx(N, dec = true){
 }
 
 function deleteNodes(addrs){
-    console.log('deleting nodes ',addrs)
     nodesOnView = nodesOnView.filter(function(node, index, arr){
         return (!addrs.includes(node.id));
     });
 }
 
 function deleteLinks(addrs){
-    console.log('deleting links ',addrs)
     linksOnView = linksOnView.filter(function(link, index, arr){
         return (!addrs.includes(link.source.id)&&!addrs.includes(link.target.id));
     });
 }
 
 function addNodes(addrs){
-    console.log('adding nodes ',addrs)
     for (let n = 0; n< nodes.length; n++){
         if (addrs.includes(nodes[n].id)){
             nodesOnView.push(nodes[n]);
@@ -174,7 +186,6 @@ function addNodes(addrs){
 }
 
 function addLinks(addrs){
-    console.log('adding links ',addrs)
     for (let l = 0; l< links.length; l++){
         if ((addrs.includes(links[l].source.id))||
             (addrs.includes(links[l].target.id))){
@@ -189,31 +200,52 @@ const getDataBlockHeight = async (heightStart, heightEnd) => {
     if (heightEnd){
         let curHeight = heightStart-1;
         if (heightEnd < curHeight){
-            console.error("needs to be ascending");
+            cnslog("Block order needs to be ascending", "red");
+            return;
         }
         while (curHeight < heightEnd){
-            curHeight += 1
-            console.log('withend' ,curHeight)
-            const res = await axios.get(`http://localhost:3031/api/getdata?height=${curHeight}`);
+            curHeight += 1;
+            if (blocksFetched.includes(curHeight)){
+                cnslog(`reusing past fetched transactions for block ${curHeight}`, "yellow");
+                txs = txs.concat([DATA_TX[curHeight]]);
+                heights.push(curHeight);
+            }else{
+                cnslog(`fetching transactions for block ${curHeight}`, "yellow");
+                const res = await axios.get(`http://localhost:3031/api/getdata?height=${curHeight}`);
+                txs = txs.concat([res.data]);
+                cnslog(`${res.data.length} Transaction(s) found`, "yellow");
+                blocksFetched.push(curHeight);
+                DATA_TX[curHeight] = res.data;
+                heights.push(curHeight);
+                await sleep(200);
+            }
             
-            txs = txs.concat([res.data]);
-            heights.push(curHeight);
-            await sleep(200);
         }
     }
     else{
-        console.log('with no end' ,heightStart)
-        const res = await axios.get(`http://localhost:3031/api/getdata?height=${heightStart}`);
-        txs = [res.data];
-        heights.push(heightStart);
+        if (blocksFetched.includes(heightStart)){
+            cnslog(`reusing past fetched transactions for block ${heightStart}`, "yellow");
+            txs = [DATA_TX[heightStart]];
+            heights.push(heightStart);
+        }else{
+            cnslog(`fetching transactions for block ${heightStart}`, "yellow");
+            const res = await axios.get(`http://localhost:3031/api/getdata?height=${heightStart}`);
+            cnslog(`${res.data.length} Transaction(s) found`, "yellow");
+            txs = [res.data];
+            blocksFetched.push(heightStart);
+            DATA_TX[heightStart] = res.data;
+            heights.push(heightStart);
+        }
     }
-    
+    console.log(DATA_TX)
+    console.log(blocksFetched)
     const parsed = parse(txs, heights);
     return parsed;
 }
 
 
 function parse(datas, heights){
+    cnslog(`processing data...`, "yellow");
     let addr = [];
     let nodes = [];
     let links = [];
@@ -276,7 +308,9 @@ function parse(datas, heights){
             for(let j = 0; j<txIn.length;j++){
                 for(let k = 0; k<txOut.length;k++){
                     try{
-                        const l = {source :txIn[j].prev_out.addr, target: txOut[k].addr, txLink:data[i].hash};
+                        const l = {source :txIn[j].prev_out.addr, 
+                                target: txOut[k].addr, 
+                                txLink:data[i].hash};
                         links = links.concat(l);
                     }
                     catch (e){
