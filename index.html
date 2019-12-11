@@ -20,9 +20,15 @@
                     <input id = "heightStart" type="Number" placeholder="Number" />
                     <label>height end</label>
                     <input id = "heightEnd" type="Number" placeholder="Number" />
+                    <label>limit nodes</label>
+                    <input id = "limitView" type="Number" placeholder="Number" value="3000"/>
                     <label>3D plot</label> 
-                    <input type="checkbox" id="3d" checked>
-                    <button type="submit">plot</button>
+                    <input type="checkbox" id="3d" checked/><br>
+                    <label>Current height</label> 
+                    <input type="checkbox" id="current"/>
+                    <label>Colored by Block</label> 
+                    <input type="checkbox" id="ColorBlock"/>
+                    <button type="submit">fetch</button>
                 </form>
                 <table class="column Summary">
                     <thead>

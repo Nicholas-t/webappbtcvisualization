@@ -34,26 +34,12 @@ app.get("/api/getdata", (req, res, next) => {
             res.end()
         })
     }
-    if (req.query.address && req.query.maxTx && req.query.maxOutput){
-        const address = req.query.address;
-        const maxTx = req.query.maxTx;
-        const maxOutput = req.query.maxOutput;
-        let txs = [];
-        blockexplorer.getAddress(address).then( (result) => {
-            if (result.txs.length <= maxTx){
-                for (let i = 0; i< result.txs.length; i++){
-                    if (result.txs[i].inputs.length<= maxOutput &&
-                        result.txs[i].out.length<= maxOutput){
-                            txs.push(result.txs[i]);
-                        }
-                }
-            }
-            console.log('sending ',txs)
-            res.send(txs)
-        }).catch((e) => {
-            console.error(e);
-            res.send(txs);
-        })
-            
-    }
+});
+
+app.get("/api/getCurrentHeight", (req, res, next) => {
+    blockexplorer.getLatestBlock().then((raw) => {
+        console.log(raw.height)
+        res.send(String(raw.height))
+        res.end()
+    })
 });

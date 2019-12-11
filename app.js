@@ -37,12 +37,30 @@ function cnslog(message, color = "white"){
     cnsle.scrollTop = cnsle.scrollHeight - cnsle.clientHeight;
 }
 
+document.getElementById('current').addEventListener('change', function() {
+    if(this.checked) {
+        console.log('change to CH')
+        axios.get(`http://localhost:3031/api/getCurrentHeight`).then((res) => {
+            document.getElementById('heightStart').value = res.data;
+            document.getElementById('heightEnd').value = '';
+            document.getElementById('heightStart').disabled = true;
+            document.getElementById('heightEnd').disabled = true;
+        });
+    } else {
+        document.getElementById('heightStart').value = '';
+        document.getElementById('heightEnd').value = '';
+        document.getElementById('heightStart').disabled = false;
+        document.getElementById('heightEnd').disabled = false;
+    }
+})
+
 document.querySelector('form.height-form').addEventListener('submit', (e) => {
     e.preventDefault();
+    
     var elem = document.getElementsByClassName('graph')[0];
     var heightStart = Number(document.getElementById('heightStart').value);
     var heightEnd = Number(document.getElementById('heightEnd').value);
-    //console.log(heightEnd, heightStart)
+    var limit = Number(document.getElementById('limitView').value);
     if (heightEnd){
         if (heightEnd<heightStart){
             cnslog("Block order needs to be ascending", "red");
@@ -61,8 +79,16 @@ document.querySelector('form.height-form').addEventListener('submit', (e) => {
         linksOnView = links;
         cluster = findCluster(links);
         refreshTables();
+        if (nodes.length>limit){
+            cnslog("nodes received more than the limits", "red");
+            checkAll(false);
+            nodesOnView = [];
+            linksOnView = [];
+        }
+        console.log(nodes, links)
         refreshGraph();
     })
+
 }, false);
 
 function refreshTables(){
@@ -82,16 +108,19 @@ function refreshTables(){
     }
     for (var key of Object.keys(lengths)) {
         sizeState[key] = true;
-        htmlSize +=  `<input type="checkbox" checked="true" class = "SIZECHECK" 
+        htmlSize +=  `<input type="checkbox" checked="${true}" class = "SIZECHECK" 
                 id = "${key}"/> ${key} Connected Components (${lengths[key]} transactions) <br />`;
     }
-    console.log(sizeState)
     sizeTable.innerHTML = htmlSize;
 
 }
 
 function refreshSummary(){
     SUMMARY['N Cluster'] = cluster.length;
+    SUMMARY['N Nodes (Total)'] = nodes.length;
+    SUMMARY['N Nodes (Active)'] = nodesOnView.length;
+    SUMMARY['N Links (Total)'] = links.length;
+    SUMMARY['N Links (Active)'] = linksOnView.length;
     let max = 0;
     for (let c = 0 ; c<cluster.length; c++){
         if (cluster[c].length > max){
@@ -99,10 +128,6 @@ function refreshSummary(){
         }
     }
     SUMMARY['MAX Cluster'] = max;
-    SUMMARY['N Nodes (Total)'] = nodes.length;
-    SUMMARY['N Nodes (Active)'] = nodesOnView.length;
-    SUMMARY['N Links (Total)'] = links.length;
-    SUMMARY['N Links (Active)'] = linksOnView.length;
     let html = "";
     for (var key of Object.keys(SUMMARY)) {
         html += `<tr>
@@ -187,9 +212,19 @@ function addNodes(addrs){
 
 function addLinks(addrs){
     for (let l = 0; l< links.length; l++){
-        if ((addrs.includes(links[l].source.id))||
-            (addrs.includes(links[l].target.id))){
+        if ((addrs.includes(links[l].source))||
+            (addrs.includes(links[l].target))){
             linksOnView.push(links[l]);
+        }else{
+            try{
+                if ((addrs.includes(links[l].source.id))||
+                    (addrs.includes(links[l].target.id))){ //With large data sets the library will not include id
+                    linksOnView.push(links[l]);
+                    }
+            }catch(e){
+                console.log('cant find link')
+            }
+                
         }
     }
 }
@@ -211,13 +246,20 @@ const getDataBlockHeight = async (heightStart, heightEnd) => {
                 heights.push(curHeight);
             }else{
                 cnslog(`fetching transactions for block ${curHeight}`, "yellow");
-                const res = await axios.get(`http://localhost:3031/api/getdata?height=${curHeight}`);
-                txs = txs.concat([res.data]);
-                cnslog(`${res.data.length} Transaction(s) found`, "yellow");
-                blocksFetched.push(curHeight);
-                DATA_TX[curHeight] = res.data;
-                heights.push(curHeight);
-                await sleep(200);
+                let res = null;
+                try{
+                    res = await axios.get(`http://localhost:3031/api/getdata?height=${curHeight}`);
+                    txs = txs.concat([res.data]);
+                    cnslog(`${res.data.length} Transaction(s) found`, "yellow");
+                    blocksFetched.push(curHeight);
+                    DATA_TX[curHeight] = res.data;
+                    heights.push(curHeight);
+                    await sleep(200);
+                }catch(e){
+                    console.log(e);
+                    cnslog('[ERROR] Failed to fetch',"red");
+                    cnslog('[ERROR] did you run the server by running rest.js ?',"red");
+                }
             }
             
         }
@@ -229,16 +271,21 @@ const getDataBlockHeight = async (heightStart, heightEnd) => {
             heights.push(heightStart);
         }else{
             cnslog(`fetching transactions for block ${heightStart}`, "yellow");
-            const res = await axios.get(`http://localhost:3031/api/getdata?height=${heightStart}`);
-            cnslog(`${res.data.length} Transaction(s) found`, "yellow");
-            txs = [res.data];
-            blocksFetched.push(heightStart);
-            DATA_TX[heightStart] = res.data;
-            heights.push(heightStart);
+            let res = null;
+            try{
+                res = await axios.get(`http://localhost:3031/api/getdata?height=${heightStart}`);
+                cnslog(`${res.data.length} Transaction(s) found`, "yellow");
+                txs = [res.data];
+                blocksFetched.push(heightStart);
+                DATA_TX[heightStart] = res.data;
+                heights.push(heightStart);
+            }catch(e){
+                console.log(e);
+                cnslog('[ERROR] Failed to fetch',"red");
+                cnslog('[ERROR] did you run the server by running rest.js ?',"red");
+            }
         }
     }
-    console.log(DATA_TX)
-    console.log(blocksFetched)
     const parsed = parse(txs, heights);
     return parsed;
 }
@@ -277,7 +324,7 @@ function parse(datas, heights){
                     }
                 }
                 catch(e){
-                    console.log(txIn[j])
+                    cnslog(`failed to parse node for transaction ${data[i].hash}`, "red")
                     console.log(e)
                 }
             }
@@ -300,7 +347,7 @@ function parse(datas, heights){
                     }
                 }
                 catch(e){
-                    console.log(txOut[j])
+                    cnslog(`failed to parse node for transaction ${data[i].hash}`, "red")
                     console.log(e)
                 }
             }
@@ -314,8 +361,7 @@ function parse(datas, heights){
                         links = links.concat(l);
                     }
                     catch (e){
-                        console.log(txIn[j])
-                        console.log(txOut[k])
+                        cnslog(`failed to parse link for transaction ${data[i].hash}`, "red")
                         console.log(e)
                     }
                 }
