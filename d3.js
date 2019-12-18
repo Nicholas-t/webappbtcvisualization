@@ -1,5 +1,3 @@
-
-
 function draw3dHeight(nodes, links, width, height){
     gData = {
         nodes: nodes,

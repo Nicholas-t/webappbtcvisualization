@@ -10,6 +10,7 @@ var blocksFetched = [];
 var DATA_TX = {};
 var SUMMARY = {};
 var cnsle = document.getElementsByClassName('log')[0];
+let CC = {};
 
 window.onload = function(){
     cnslog("Welcome to my project");
@@ -115,25 +116,151 @@ function refreshTables(){
 
 }
 
+function getMaxCluster(clst){
+    let max = 0;
+    for (let c = 0 ; c<clst.length; c++){
+        if (clst[c].length > max){
+            max = clst[c].length;
+        }
+    }
+    return max
+}
+
+function getNeighbours(addr){
+    let out = []
+    for (let l = 0; l< links.length; l++){
+        if ((addr.includes(links[l].source))||
+            (addr.includes(links[l].target))){
+            if (addr.includes(links[l].source)){
+                out.push(links[l].target);
+            }
+            else{
+                out.push(links[l].source);
+            }
+        }else{
+            try{
+                if ((addr.includes(links[l].source.id))||
+                    (addr.includes(links[l].target.id))){
+                    if (addr.includes(links[l].source.id)){
+                        out.push(links[l].target.id);
+                    }
+                    else{
+                        out.push(links[l].source.id);
+                    }
+                }
+            }catch(e){
+                console.log('');
+            }  
+        }
+    }
+    return out;
+}
+
+function getCCLinks(addr){
+    let out = []
+    for (let l = 0; l< links.length; l++){
+        if ((addr.includes(links[l].source))&&
+            (addr.includes(links[l].target))){
+            out.push(l);
+        }else{
+            try{
+                if ((addr.includes(links[l].source.id))&&
+                    (addr.includes(links[l].target.id))){ //With large data sets the library will not include id
+                    out.push(l);
+                    }
+            }catch(e){
+                console.log('');
+            }  
+        }
+    }
+    return out;
+}
+    
+function getCC(){
+    CC = {};
+    for(let c = 0; c < cluster.length ; c++){
+        let clst = cluster[c];
+        for (let n = 0;n<clst.length;n++){
+            let node = clst[n];
+            CC[node] = 0;
+            let neighb = getNeighbours(node);
+            let temp = getCCLinks(neighb);
+            if (temp.length !== 0){
+                CC[node] = 1/temp.length;
+            }
+        }
+    }
+    let ccAvg = [];
+    let ccOnView = [];
+    let NOV = [];
+    for (let n = 0 ; n< nodesOnView.length;n++){
+        NOV.push(nodesOnView[n].id)
+    }
+    let nodesMaxCC = null;
+    let nodesMaxCCOnView = null;
+    for (var key of Object.keys(CC)) {
+        if (nodesMaxCC === null){
+            nodesMaxCC = CC[key];
+            nodesMaxCCOnView = CC[key];
+        }
+        if (NOV.includes(key)){
+            ccOnView.push(CC[key]);
+            if (CC[key] > nodesMaxCCOnView){
+                nodesMaxCCOnView = CC[key];
+            }
+        }
+        if (CC[key] > nodesMaxCC){
+            nodesMaxCC = CC[key];
+        }
+        ccAvg.push(CC[key]);
+    }
+    let ccAvgOut = 0;
+    let ccOnViewOut = 0;
+    for (let i = 0; i< ccAvg.length ; i++){
+        ccAvgOut += ccAvg[i];
+    }
+    for (let i = 0; i< ccOnView.length ; i++){
+        ccOnViewOut += ccOnView[i];
+    }
+    return [ccAvgOut/ccAvg.length, ccOnViewOut/ccOnView.length, nodesMaxCC, nodesMaxCCOnView];
+}
+
+function downloadDistributionGraph(){
+    let data = {};
+    for (var key of Object.keys(CC)) {
+        if (!(data[CC[key]])){
+            data[CC[key]] = 0;
+        }
+        data[CC[key]]+=1;
+    }
+    let lineData = [];
+    for (var key of Object.keys(data)) {
+        lineData.push({x:Number(key), y:data[key]})
+    }
+    axios.get(`http://localhost:3031/api/drawDistribution?data=${JSON.stringify(lineData)}`);
+}
+
 function refreshSummary(){
     SUMMARY['N Cluster'] = cluster.length;
     SUMMARY['N Nodes (Total)'] = nodes.length;
-    SUMMARY['N Nodes (Active)'] = nodesOnView.length;
+    SUMMARY['N Nodes (On view)'] = nodesOnView.length;
     SUMMARY['N Links (Total)'] = links.length;
-    SUMMARY['N Links (Active)'] = linksOnView.length;
-    let max = 0;
-    for (let c = 0 ; c<cluster.length; c++){
-        if (cluster[c].length > max){
-            max = cluster[c].length;
-        }
+    SUMMARY['N Links (On view)'] = linksOnView.length;
+    SUMMARY['MAX Cluster'] = getMaxCluster(cluster);
+    if(document.getElementById("CC").checked){
+        const cl = getCC();
+        SUMMARY['Average CC'] = cl[0];
+        SUMMARY['Average CC (On view)'] = cl[1];
+        SUMMARY['MAX CC'] = cl[2];
+        SUMMARY['MAX CC (On view)'] = cl[3];
     }
-    SUMMARY['MAX Cluster'] = max;
     let html = "";
     for (var key of Object.keys(SUMMARY)) {
         html += `<tr>
-                    <td>${key}</td>
-                    <td class="value">${SUMMARY[key]}</td>
-                </tr>`
+                <td>${key}</td>
+                <td class="value">${SUMMARY[key]}</td>
+            </tr>`
+        
     }
     document.getElementById('Summary').innerHTML = html;            
 }
@@ -210,22 +337,32 @@ function addNodes(addrs){
     }
 }
 
-function addLinks(addrs){
+
+function getLinks(addr){
+    let out = []
     for (let l = 0; l< links.length; l++){
-        if ((addrs.includes(links[l].source))||
-            (addrs.includes(links[l].target))){
-            linksOnView.push(links[l]);
+        if ((addr.includes(links[l].source))||
+            (addr.includes(links[l].target))){
+            out.push(l);
         }else{
             try{
-                if ((addrs.includes(links[l].source.id))||
-                    (addrs.includes(links[l].target.id))){ //With large data sets the library will not include id
-                    linksOnView.push(links[l]);
+                if ((addr.includes(links[l].source.id))||
+                    (addr.includes(links[l].target.id))){ //With large data sets the library will not include id
+                    out.push(l);
                     }
             }catch(e){
-                console.log('cant find link')
-            }
-                
+                console.log('');
+            }  
         }
+    }
+    return out;
+}
+
+function addLinks(addrs){
+    const index = getLinks(addrs);
+    for(let i=0; i< index.length;i++){
+        const l = index[i];
+        linksOnView.push(links[l]);
     }
 }
 

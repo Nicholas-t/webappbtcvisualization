@@ -1,6 +1,6 @@
 var express = require('express');
 var blockexplorer = require('blockchain.info/blockexplorer')
-
+const plot = require('node-scatterplot')
 
 var app = express();
 
@@ -42,4 +42,16 @@ app.get("/api/getCurrentHeight", (req, res, next) => {
         res.send(String(raw.height))
         res.end()
     })
+});
+
+app.get("/api/drawDistribution",(req, res, next) => {
+    let datas = JSON.parse(req.query.data);
+    let toPlot = []
+    for (let d = 0; d<datas.length ; d++){
+        if (datas[d].x !== 0){
+            toPlot.push([datas[d].x,datas[d].y])
+        }
+    }
+    console.log(toPlot);
+    plot(toPlot)
 });

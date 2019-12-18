@@ -28,6 +28,8 @@
                     <input type="checkbox" id="current"/>
                     <label>Colored by Block</label> 
                     <input type="checkbox" id="ColorBlock"/>
+                    <label>Calculate Custer Coefficient (will take longer time)</label> 
+                    <input type="checkbox" id="CC"/>
                     <button type="submit">fetch</button>
                 </form>
                 <table class="column Summary">
@@ -52,7 +54,7 @@
                 <button id="unshowall" onclick="checkAll(false)"> UN-CHECK ALL </button>
                 <button id="refresh" onclick="refreshGraph()"> REFRESH </button>
                 <button onclick="listFetched()" style="color:black;background: white;">list fetched height in console</button>
-                
+                <button onclick="downloadDistributionGraph()" style="color:black;background: white;">download CC Graph</button>
             </p>
         </div>
         <div class = "column graph" >
